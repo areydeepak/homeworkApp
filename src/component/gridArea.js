@@ -46,13 +46,13 @@ const CanvasGrid = ({mode}) => {
     
     let angle = Math.atan2(endY - startY, endX - startX);
     // if (angle<0)
-    //   angle=3.14-angle
+    //   angle=angle+3.14
 
     
     context.save();
     
     context.translate(midX, midY);
-    
+    // if angle >3.14
     context.rotate(angle);
     
     context.font = `400 ${12 * scale}px Epilogue`;
@@ -389,8 +389,16 @@ const CanvasGrid = ({mode}) => {
     const midAngle = (startAngle + endAngle) / 2;
     const textX = commonPoint.x * scale + panX + radius * Math.cos(midAngle);
     const textY = commonPoint.y * scale + panY + radius * Math.sin(midAngle);
-    context.fillText(angleFinal.toFixed(1) + "°", textX+10*scale, textY+10*scale);
-    context.closePath();
+    const text = angleFinal.toFixed(1) + "°";
+    context.font = `400 ${10 * scale}px Epilogue`;
+    const textWidth = context.measureText(text).width;
+    const textHeight = 10 * scale;
+    context.save();
+    context.translate(textX, textY);
+    context.rotate(midAngle + Math.PI / 2);
+    context.fillText(text, -textWidth / 2, textHeight / 2);
+    context.restore();
+
   };
 
   const redrawCanvas = () => {
