@@ -43,19 +43,35 @@ const CanvasGrid = ({mode}) => {
 
     const midX = (startX + endX) / 2;
     const midY = (startY + endY) / 2;
+    
+    let angle = Math.atan2(endY - startY, endX - startX);
+    // if (angle<0)
+    //   angle=3.14-angle
+
+    
+    context.save();
+    
+    context.translate(midX, midY);
+    
+    context.rotate(angle);
+    
     context.font = `400 ${12 * scale}px Epilogue`;
     context.fillStyle = 'black';
-    context.fillText(Math.round(length)+"cm", midX, midY + 15);
+    context.fillText(Math.round(length) + "cm", -5*scale, 15 * scale);
+    
+    context.restore();
   };
 
-  const drawPoint = (context, x, y, name) => {
+  const drawPoint = (context, x, y, name,direction) => {
     context.beginPath();
     context.arc(x, y, 2 * scale, 0, Math.PI * 2);
     context.fillStyle = 'black';
     context.fill();
-    context.font = `400 ${12 * scale}px Epilogue`;
+    context.font = `400 ${10 * scale}px Epilogue`;
     context.fillStyle = 'black';
-    context.fillText(name, x, y + 15); // Adjust position for name
+    
+    context.fillText(name, x+direction[0]*10*scale, y + direction[1]*10*scale); // Adjust position for name
+
   };
 
   const findNearestPoint = (x, y) => {
@@ -136,6 +152,17 @@ const CanvasGrid = ({mode}) => {
         endX: finalEndX,
         endY: finalEndY
       };
+      let direction=[1,1]
+      if (finalStartX>finalEndX)
+        direction[0]=1
+      else 
+        direction[0]=-1
+      if (finalStartY>finalEndY)
+        direction[1]=1
+      else 
+        direction[1]=-1
+
+
 
       const lengthInUnits = (Math.hypot(finalEndX - finalStartX, finalEndY - finalStartY) / (dotSpacing * 4)).toFixed(1);
       newLine.length = lengthInUnits;
@@ -144,7 +171,7 @@ const CanvasGrid = ({mode}) => {
 
       if (!startNearestPoint) {
         const newPointNameStart = generatePointName(nameIndex);
-        setPoints([...points, { x: finalStartX, y: finalStartY, name: newPointNameStart }]);
+        setPoints([...points, { x: finalStartX, y: finalStartY, name: newPointNameStart,direction:direction }]);
       }
 
       if (!endNearestPoint) {
@@ -152,11 +179,11 @@ const CanvasGrid = ({mode}) => {
           const newPointNameStart = generatePointName(nameIndex);
           const newPointNameEnd = generatePointName(nameIndex+1);
           setNameIndex(nameIndex + 2);
-          setPoints([...points, { x: finalStartX, y: finalStartY, name: newPointNameStart },{ x: finalEndX, y: finalEndY, name: newPointNameEnd }]);
+          setPoints([...points, { x: finalStartX, y: finalStartY, name: newPointNameStart,direction:direction },{ x: finalEndX, y: finalEndY, name: newPointNameEnd,direction:[direction[0]*-1,direction[1]*-1] }]);
         } else {
           const newPointNameEnd = generatePointName(nameIndex);
           setNameIndex(nameIndex + 1);
-          setPoints([...points, { x: finalEndX, y: finalEndY, name: newPointNameEnd }]);
+          setPoints([...points, { x: finalEndX, y: finalEndY, name: newPointNameEnd,direction:[direction[0]*-1,direction[1]*-1] }]);
         }
       }
 
@@ -312,7 +339,7 @@ const CanvasGrid = ({mode}) => {
     let endAngle = Math.atan2(dy1,dx1);
     let startAngle = Math.atan2(dy2,dx2);
 
-    if (startAngle > endAngle) {
+    if (Math.abs(startAngle) > Math.abs(endAngle)) {
       const temp = endAngle;
       endAngle = startAngle;
       startAngle = temp;
@@ -362,7 +389,7 @@ const CanvasGrid = ({mode}) => {
     const midAngle = (startAngle + endAngle) / 2;
     const textX = commonPoint.x * scale + panX + radius * Math.cos(midAngle);
     const textY = commonPoint.y * scale + panY + radius * Math.sin(midAngle);
-    context.fillText(angleFinal.toFixed(1) + "°", textX, textY);
+    context.fillText(angleFinal.toFixed(1) + "°", textX+10*scale, textY+10*scale);
     context.closePath();
   };
 
@@ -379,7 +406,7 @@ const CanvasGrid = ({mode}) => {
     });
 
     points.forEach(point => {
-      drawPoint(context, point.x * scale + panX, point.y * scale + panY, point.name);
+      drawPoint(context, point.x * scale + panX, point.y * scale + panY, point.name,point.direction);
     });
 
     if (isDrawing) {
@@ -392,11 +419,12 @@ const CanvasGrid = ({mode}) => {
       const connectedLines = lines.filter(line => line.startX !== line.endX && ((line.startX === point.x && line.startY === point.y) || (line.endX === point.x && line.endY === point.y)));
       console.log(connectedLines);
       if (connectedLines.length >= 2) {
-        // for (let i = 0; i < connectedLines.length - 1; i++) {
-        //   for (let j = i + 1; j < connectedLines.length; j++) {
-            drawAngle(context, point, connectedLines[0], connectedLines[1]);
-        //   }
-        // }
+        for (let i = 0; i < connectedLines.length - 1; i++) {
+          for (let j = i + 1; j < connectedLines.length; j++) {
+            drawAngle(context, point, connectedLines[i], connectedLines[j]);
+            break;
+          }
+        }
       }
     });
   };
