@@ -384,22 +384,22 @@ const CanvasGrid = ({mode}) => {
     else
     context.arc(commonPoint.x * scale + panX, commonPoint.y * scale + panY, radius, startAngle, endAngle,-1);
 
-    context.fillStyle = "red";
-    context.globalAlpha = 0.25;
-    context.fill();
+    // context.fillStyle = "red";
+    context.globalAlpha = 1;
+    context.stroke();
     context.restore();
-    context.fillStyle = "black";
+    // context.fillStyle = "black";
 
     const midAngle = (startAngle + endAngle) / 2;
     const textX = commonPoint.x * scale + panX + radius * Math.cos(midAngle);
     const textY = commonPoint.y * scale + panY + radius * Math.sin(midAngle);
-    angleFinal=angleFinal>180?360-angleFinal:angleFinal
+    angleFinal=angleFinal > 180 ? 360 - angleFinal : angleFinal
     const text = angleFinal.toFixed(1) + "°";
     context.font = `400 ${10 * scale}px Epilogue`;
     const textWidth = context.measureText(text).width;
     const textHeight = 10 * scale;
     context.save();
-    context.translate(textX, textY);
+    context.translate(textX+10*scale, textY+10*scale);
     context.rotate(midAngle + Math.PI / 2);
     context.fillText(text, -textWidth / 2, textHeight / 2);
     context.restore();
