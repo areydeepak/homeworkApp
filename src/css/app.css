@@ -1,0 +1,34 @@
+body {
+    margin: 0;
+    overflow: hidden;
+  }
+  
+  .App {
+    height: 100vh; 
+  }
+  
+  .canvas-container {
+    margin-top: 20vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw; 
+    height: 50vh; 
+  }
+
+  
+  .footer{
+    align-content: center;
+    background-color: #FCF6D7;
+    margin-top: 20vh;
+    /* width: 100vw; */
+    height: 10vh;
+    padding-left: 10vw;
+    box-shadow: 0 -10px 10px -10px rgba(0, 0, 0, 0.7);
+    border-radius: 5vh 5vh 0 0;
+
+}
+canvas{
+    background-color: rgba(217, 217, 217, 0.2);
+
+}
