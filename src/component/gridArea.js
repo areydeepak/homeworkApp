@@ -45,7 +45,7 @@ const CanvasGrid = ({mode}) => {
     const midY = (startY + endY) / 2;
     context.font = `400 ${12 * scale}px Epilogue`;
     context.fillStyle = 'black';
-    context.fillText(Math.round(length)+"cm", midX+15, midY + 15);
+    context.fillText(Math.round(length)+"cm", midX, midY + 15);
   };
 
   const drawPoint = (context, x, y, name) => {
@@ -224,55 +224,146 @@ const CanvasGrid = ({mode}) => {
     const angle2 = Math.atan2(line2.endY - line2.startY, line2.endX - line2.startX);
 
     const angle = Math.abs(angle1 - angle2);
-    return angle * (180 / Math.PI); 
+    return angle * (180 / Math.PI);
   };
 
-  
+
   const drawAngle = (context, vertex, line1, line2) => {
     const angle = calculateAngle(line1, line2);
-    const radius = 20 * scale; 
+    const radius = 20 * scale;
     let getNormalizedAngle = (dx, dy) => {
       let angle = Math.atan2(dy, dx);
       if (angle < 0) angle += 2 * Math.PI;
       return angle;
     };
-    
-    let getAngle = (line) => {
-      const dx = line.endX - line.startX;
-      const dy = line.endY - line.startY;
-    
-      let angle1 = getNormalizedAngle(dx, dy);
-      let angle2 = getNormalizedAngle(-dx, -dy);
-    
-      return Math.min(angle1, angle2);
-    };
-    
-    let startAngle = getAngle(line1);
-    let endAngle = getAngle(line2);
-    
-    console.log("Angles:", startAngle, endAngle);
-    
-    let counterClockwise = false;
-    
-    if (endAngle < startAngle) {
-      counterClockwise = true;
-    } else if (endAngle - startAngle > Math.PI) {
-      counterClockwise = true;
-    } else {
-      counterClockwise = false;
+
+    let commonPoint, restPoints;
+
+    if (line1.startX === line2.startX && line1.startY === line2.startY ) {
+      commonPoint = {
+        x: line1.startX,
+        y: line1.startY
+      }
+      restPoints = {
+        1: {
+          x: line1.endX,
+          y: line1.endY
+        },
+        2: {
+          x: line2.endX,
+          y: line2.endY
+        },
+      }
+    } else if (line1.startX === line2.endX && line1.startY === line2.endY ) {
+      commonPoint = {
+        x: line1.startX,
+        y: line1.startY
+      }
+      restPoints = {
+        1: {
+          x: line1.endX,
+          y: line1.endY
+        },
+        2: {
+          x: line2.startX,
+          y: line2.startY
+        },
+      }
+    } else if (line1.endX === line2.startX && line1.endY === line2.startY ) {
+      commonPoint = {
+        x: line1.endX,
+        y: line1.endY
+      }
+      restPoints = {
+        1: {
+          x: line1.startX,
+          y: line1.startY
+        },
+        2: {
+          x: line2.endX,
+          y: line2.endY
+        },
+      }
+    } else if (line1.endX === line2.endX && line1.endY === line2.endY ) {
+      commonPoint = {
+        x: line1.endX,
+        y: line1.endY
+      }
+      restPoints = {
+        1: {
+          x: line1.startX,
+          y: line1.startY
+        },
+        2: {
+          x: line2.startX,
+          y: line2.startY
+        },
+      }
     }
-    
+
+    const pointOne = restPoints[1];
+    const pointTwo = restPoints[2];
+
+    const dx1 = pointOne.x - commonPoint.x;
+    const dy1 = pointOne.y - commonPoint.y;
+    const dx2 = pointTwo.x - commonPoint.x;
+    const dy2 = pointTwo.y - commonPoint.y;
+
+    let endAngle = Math.atan2(dy1,dx1);
+    let startAngle = Math.atan2(dy2,dx2);
+
+    if (startAngle > endAngle) {
+      const temp = endAngle;
+      endAngle = startAngle;
+      startAngle = temp;
+    }
+
+
+    const angleFinal = parseInt((endAngle - startAngle) * 180 / Math.PI + 360) % 360;
+
+    // let getAngle = (line) => {
+    //   const dx = line.endX - line.startX;
+    //   const dy = line.endY - line.startY;
+
+    //   let angle1 = getNormalizedAngle(dx, dy);
+    //   let angle2 = getNormalizedAngle(-dx, -dy);
+
+    //   return Math.min(angle1, angle2);
+    // };
+
+    // let startAngle = getAngle(line1);
+    // let endAngle = getAngle(line2);
+
+    // console.log("Angles:", startAngle, endAngle);
+
+    // let counterClockwise = false;
+
+    // if (endAngle < startAngle) {
+    //   counterClockwise = true;
+    // } else if (endAngle - startAngle > Math.PI) {
+    //   counterClockwise = true;
+    // } else {
+    //   counterClockwise = false;
+    // }
+    // console.log({
+    //   startAngle, endAngle, counterClockwise
+    // })
+
+    context.save();
     context.beginPath();
-    context.arc(vertex.x * scale + panX, vertex.y * scale + panY, radius, startAngle, endAngle, counterClockwise);
-    context.stroke();
-    
-
-
+    context.moveTo(commonPoint.x * scale + panX, commonPoint.y * scale + panY);
+    context.arc(commonPoint.x * scale + panX, commonPoint.y * scale + panY, radius, startAngle, endAngle);
+    context.fillStyle = "red";
+    context.globalAlpha = 0.25;
+    context.fill();
+    context.restore();
+    context.fillStyle = "black";
 
     const midAngle = (startAngle + endAngle) / 2;
-    const textX = vertex.x * scale + panX + radius * Math.cos(midAngle);
-    const textY = vertex.y * scale + panY + radius * Math.sin(midAngle);
-    context.fillText(angle.toFixed(1) + "°", textX, textY);
+    const textX = commonPoint.x * scale + panX + radius * Math.cos(midAngle);
+    const textY = commonPoint.y * scale + panY + radius * Math.sin(midAngle);
+    context.fillText(angleFinal.toFixed(1) + "°", textX, textY);
+    context.closePath();
   };
 
   const redrawCanvas = () => {
@@ -298,7 +389,8 @@ const CanvasGrid = ({mode}) => {
 
     // Draw angles
     points.forEach(point => {
-      const connectedLines = lines.filter(line => (line.startX === point.x && line.startY === point.y) || (line.endX === point.x && line.endY === point.y));
+      const connectedLines = lines.filter(line => line.startX !== line.endX && ((line.startX === point.x && line.startY === point.y) || (line.endX === point.x && line.endY === point.y)));
+      console.log(connectedLines);
       if (connectedLines.length >= 2) {
         // for (let i = 0; i < connectedLines.length - 1; i++) {
         //   for (let j = i + 1; j < connectedLines.length; j++) {
@@ -330,7 +422,7 @@ const CanvasGrid = ({mode}) => {
     };
   }, [scale, lines, points, panX, panY]);
 
-  
+
 
   return (
       <canvas
