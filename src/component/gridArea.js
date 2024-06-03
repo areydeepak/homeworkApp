@@ -346,7 +346,7 @@ const CanvasGrid = ({mode}) => {
     }
 
 
-    const angleFinal = parseInt((endAngle - startAngle) * 180 / Math.PI + 360) % 360;
+    let angleFinal = parseInt((endAngle - startAngle) * 180 / Math.PI + 360) % 360;
 
     // let getAngle = (line) => {
     //   const dx = line.endX - line.startX;
@@ -379,7 +379,11 @@ const CanvasGrid = ({mode}) => {
     context.save();
     context.beginPath();
     context.moveTo(commonPoint.x * scale + panX, commonPoint.y * scale + panY);
-    context.arc(commonPoint.x * scale + panX, commonPoint.y * scale + panY, radius, startAngle, endAngle);
+    if (angleFinal<180)
+      context.arc(commonPoint.x * scale + panX, commonPoint.y * scale + panY, radius, startAngle, endAngle);
+    else
+    context.arc(commonPoint.x * scale + panX, commonPoint.y * scale + panY, radius, startAngle, endAngle,-1);
+
     context.fillStyle = "red";
     context.globalAlpha = 0.25;
     context.fill();
@@ -389,6 +393,7 @@ const CanvasGrid = ({mode}) => {
     const midAngle = (startAngle + endAngle) / 2;
     const textX = commonPoint.x * scale + panX + radius * Math.cos(midAngle);
     const textY = commonPoint.y * scale + panY + radius * Math.sin(midAngle);
+    angleFinal=angleFinal>180?360-angleFinal:angleFinal
     const text = angleFinal.toFixed(1) + "°";
     context.font = `400 ${10 * scale}px Epilogue`;
     const textWidth = context.measureText(text).width;
@@ -427,12 +432,11 @@ const CanvasGrid = ({mode}) => {
       const connectedLines = lines.filter(line => line.startX !== line.endX && ((line.startX === point.x && line.startY === point.y) || (line.endX === point.x && line.endY === point.y)));
       console.log(connectedLines);
       if (connectedLines.length >= 2) {
-        for (let i = 0; i < connectedLines.length - 1; i++) {
-          for (let j = i + 1; j < connectedLines.length; j++) {
-            drawAngle(context, point, connectedLines[i], connectedLines[j]);
-            break;
-          }
-        }
+        // for (let i = 0; i < connectedLines.length - 1; i++) {
+        //   for (let j = i + 1; j < connectedLines.length; j++) {
+            drawAngle(context, point, connectedLines[0], connectedLines[1]);
+            // break;
+        //   }
       }
     });
   };
